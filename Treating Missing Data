@@ -1,0 +1,169 @@
+*********************************
+**Method: Treating Missing Data** 
+*********************************
+
+clear all
+//Set current directory 
+cd "/Users/yejikim/Documents/stata-scripts"
+use "SPI2016.dta" // Survey of Prison Inmates 
+
+rename V0001B persid
+gen year=2016, a(persid) // this is a 2016 data
+
+//family also incarcetrated?
+describe V1172-V1174 // father, mother, siblings incarcerated? 
+summarize V1172-V1174 // min -2 and max 2? 
+
+tab1 V1172-V1174 // -2 refusal and -1 don't know, 1 yes and 2 no. Need to recode them as binary 
+
+//No as 0
+replace V1172=0 if V1172==2
+replace V1173=0 if V1173==2
+replace V1174=0 if V1174==2
+
+// -1, -2 as missing variable
+replace V1172=. if V1172<0
+replace V1173=. if V1173<0
+replace V1174=. if V1174<0
+tab1 V1172-V1174, missing
+
+//create new variable 
+gen famprison = V1172+V1173+V1174
+
+list persid V1172-V1174 famprison in 1/10 //the final value (famprison) does add up
+
+//mental health index
+//frequency of nervousness, hopelessness, restlesness, and depression, worthlessness past 30 days
+gen mhealthtotal = V1179+V1180+V1181+V1182+V1183+V1184
+gen mhealthavg = mhealthtotal/6
+br mhea*
+
+lookfor age
+rename RV0001 age //current age
+sum age
+gen agesq = age^2 //for nonlinear relationship later
+br a*
+gen birthyear = year-age
+
+lookfor race
+rename RV0003 race // 6-levels categorical (Race/Hispanic)
+tab race, missing //245 missings
+gen white =1 if r==1, a(race) //white binary variable
+replace white=0 if r!=1
+replace white=. if race==.
+tab race white, missing
+
+rename RV0051 marital
+tab marital, missing //married, widowed, separated, divorced, never married, DK/REF =98
+replace marital=. if marital==98
+gen married=.
+replace married=1 if marital==1
+replace married=0 if marital>1 & marital <6
+tab ma*, missing
+
+save "SPI2016renamed.dta", replace
+
+des mhealth* //no variable label
+label variable mhealthtotal "Mental health index total"
+label variable mhealthavg "Mental health index average"
+
+*******************************************************************************************
+**Q1 How many of the samples were born outside of the US and what's their education level?
+*******************************************************************************************
+lookfor born
+rename V0945 bornUS
+tab bornUS
+replace bornUS=. if bornUS<0
+replace bornUS=0 if bornUS==2
+
+label define bornUS_lbl 0 "born outside of US" 1 "born in US"
+label values bornUS bornUS_lbl
+
+tab born, miss // 6% of the samples were born outside of the US
+
+lookfor education
+rename V0935 education //highest education prior to prison 
+summarize education // min -2, max 30
+replace education=. if education<0
+
+gen educ_collapsed = .
+replace educ_collapsed = 1 if inlist(education, 1, 2, 3, 4, 5, 6)
+replace educ_collapsed = 2 if inlist(educa, 7, 8)
+replace educ_collapsed = 3 if inlist(educa, 9, 10, 11, 12)
+replace educ_collapsed = 4 if inlist(educa, 13, 14, 15, 16)
+replace educ_collapsed = 5 if inlist(educa, 17, 18)
+replace educ_collapsed = . if inlist(educa, 30)
+label define educ_collapsed_lbl 1 "Elementary" 2 "Middle School" 3 "High School" 4 "College" 5 "Graduate School"
+label values educ_collapsed educ_collapsed_lbl
+tab educ_collapsed bornUS, col 
+
+/*
+                | V0945 - SES4: Born in
+                |  US or Other Country
+ educ_collapsed | born outs  born in U |     Total
+----------------+----------------------+----------
+     Elementary |       194        326 |       520 
+                |     16.40       1.74 |      2.62 
+----------------+----------------------+----------
+  Middle School |       101      1,164 |     1,265 
+                |      8.54       6.23 |      6.37 
+----------------+----------------------+----------
+    High School |       649     13,280 |    13,929 
+                |     54.86      71.05 |     70.09 
+----------------+----------------------+----------
+        College |       216      3,644 |     3,860 
+                |     18.26      19.50 |     19.42 
+----------------+----------------------+----------
+Graduate School |        23        276 |       299 
+                |      1.94       1.48 |      1.50 
+----------------+----------------------+----------
+          Total |     1,183     18,690 |    19,873 
+                |    100.00     100.00 |    100.00 
+*/
+
+******************************************
+**Question 2 Smoking and Exercise?
+******************************************
+
+lookfor exer
+rename V1260 exercise
+sum exercise
+replace exercise =. if exercise<0 //missing variable coded as -2 
+
+lookfor smok
+rename V1254 smokenow
+tab smokenow, missing // 1= everyday, 2=sometimes, 3=not at all. The attrition for this question is more than 80% of the samples. --> may impinge the validity of the analysis. 
+sum exercise if smok==1 | smok==2 // 20 days
+sum exercise if smok==3 // 21 days
+
+//let's run ttest of two sample means 
+gen smoke_group = .
+replace smoke_group = 1 if smoken == 1 | smoken == 2
+replace smoke_group = 2 if smoken == 3 
+ttest exercise, by(smoke_group)
+
+/*
+
+    Ha: diff < 0                 Ha: diff != 0                 Ha: diff > 0
+ Pr(T < t) = 0.0387         Pr(|T| > |t|) = 0.0774          Pr(T > t) = 0.9613 */
+ 
+//result: Since this p-value is less than 0.05, reject the null hypothesis in favor of the alternative hypothesis (smokers exercise less than non-smokers) that the mean difference is less than 0 at the 5% significance level. 
+
+************************************************************
+**Question 3: What types of offense for Alaska and Hawaai? 
+************************************************************
+
+lookfor offen
+tab V0062, missing
+rename V0062 offencetype
+lookfor state
+rename V0772 state
+br state
+tab offen if state=="AK" | state=="HI", missing // 33% violent offence, 29% property offence
+
+//Is the distribution different for other states? 
+tab offen if state!="AK" | state!="HI", missing // 50% violent offence, 16% property offence 
+
+****************
+**<<The End>>
+****************
