@@ -1,59 +1,94 @@
-**Module 6
-cd "C:\Users\yeji\Desktop\R Practice\stata"
-use "Assignment2.dta"
+*******************************************************************
+**Q1. Corr between Marihuana Legalization and Economic Indicators** 
+*******************************************************************
 
-//merging data (1) adding rows to existing columns 
-// called making dataset 'longer' == appending dataset
+*****************************************************
+**Q2. Corr between Insurance Level and Urbanization** 
+*****************************************************
 
-//(2) adding new columns to existing rows
-// called making dataset 'wider' == merging dataset
+********************************
+**Method: 1:1 Merging Datasets** 
+********************************
 
-//three elements needed to merge
-*already opened dataset - master dataset
-**second dataset - tucked away on laptop somewhere == using dataset
-***one identifier
+//Set current directory 
+cd "/Users/yejikim/Documents/stata-scripts"
 
-br
-drop if YEAR==2008
-drop if party=="Republican"
-keep abb pervotes legislators marijuanalegal land
+use "USelection.dta"
 
-rename perv percdem
-sum percdem, detail
-rename abb state
-rename state abb
-list state if percdem<30
-list state if percdem>65
+br //The dataset has 4 observations for each state, need to drop 3 out of four
+rename YEARYEAR YEAR 
+drop if YEAR==2008 //let's observe 2020 data only 
+drop if party=="Republican" //each state has number of votes for Republican and Democratic candidate, only leave votes for Democratic candidate 
 
-save Merge1.dta, replace
+//check our work
+count //51
+tab abb // one observation per state 
 
-use "Merge2.dta"
-sort region minwage
+//create variable that shows what % of the voters supported candidate Biden in 2020 
+generate percdem = (numvotes / tvts20082020)*100  
+sum percdem, detail //no number seems rediculously large or small
 
-merge 1:1 abb using Merge1.dta
+//confirm the data with common knowledge of US political standing
+rename name state 
+list state if percdem < 30 // West Virginia and Wyoming - Rep states
+list state if percdem > 65 // D.C., Maryland, Mass, and Vermont - Dem states
+
+//now leave variables of interest only and save
+keep abb percdem legislators marijuanalegal land
+save Merge1.dta
+
+//Bring in second dataset 
+use "USgovprog.dta"
+describe // both dataset has 'state' 'abb' 
+// let's look more into 'year', is it also 2020? 
+summarize year // it is 2015 data, we see there are 51 obs  
+tab abb // check one observation per each state 
+
+//merge 
+merge 1:1 abb using Merge1.dta // success!
+br // check in each state "percdem legislators marijuanalegal land" were added in toe end 
 save "Merge3.dta"
 
-tabstat urban, by(mari)
-tabstat minwage, by(mari)
-tabstat uninsu, by(mari)
-sum urban minwage uninsu
+******************************************************
+**analysis 1. Marijuana Legalization Prediction*******
+******************************************************
+  
+tab marijuanalegal, nolabel // 1==illegal, 2==limited, 3==medical, 4==legalized
 
-pwcorr min leg
-pwcorr uninsu urban
-sum uninsu if percdem>50
-sum uninsu if percdem<=50
-tab _merge
+sum urban // 1- 100 scale scores 
+tabstat urban, by(marijuanalegal) // legalized states have on average 80% of urbanization compared to 68% in illegal  
+tabstat minwage, by(marijuanalegal) //$8.5 average for legalized marijuana vs $7 illegal 
+tabstat uninsu, by(marijuanalegal) // 10% uninsured in mari illegal states and 7.9% in mari legal states 
+
+gen marifullegal = marijuanalegal == 4 //create an indicator variable 
+tab marifullegal
+
+corr marifullegal urban minwage uninsu // minwage has the strongest correlation (0.60) with marifullegal, followed by negative correlation (-0.48) with minimum wage and uninsured ppulation 
+ 
+//no perfect colliniearity observed 
+ 
+regress marifullegal urban minwage uninsu //F-stat (12.12, P-val<0.0001, minwage has coeff 0.282 (p-val<0.001)) -- that is $1 increase in state minimum wage increases the change of the state turning into full legalization of marijuana by 28%
+
+//however, need to verify the marilegal stage of the 2015 as marifullegal is 2020 data. Given 2008 and 2020 marilegal barely has changes, it is assumed here that it is static. 
+
+**************************************
+****analysis 2. Uninsured population** 
+**************************************
+
+pwcorr uninsu urban povrate foodinsecure minwage marifullegal
+
+sum uninsu if percdem>50 
+sum uninsu if percdem<=50 //higher uninsured population where Republican support is greater 
+
+gen pop2015mil = pop/1000000
+regress uninsured percdem povrate foodinsecure pop2015mil minwage marifullegal
+//R squared = 0.5, percdem, minwage, population (in million), minwage are significant p<0.05
+
+//save data 
 drop _merge
 save "Merge3.dta", replace
 
-**_merge=1 the state was in the master dataset but didnt match the using dataset
-**_merge=2 the state was in the using dataset but didn't match in the master
-**_merge=3 perfect match 
+***********
+**The End**
+***********
 
-//many to 1 merge
-use IDM_SoP45.dta
-lookfor state
-br V0772
-rename V0772 abb
-merge m:1 abb using Merge3.dta
-save SoP45_state.dta
