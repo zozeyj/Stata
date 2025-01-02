@@ -1,56 +1,13 @@
-**Module7
-cd "C:\Users\yeji\Desktop\R Practice\stata"
-use "Module 5.dta"
-desc pers age mhealth*
-label variable mhealthtotal "Mental health index total"
-label variable mhealthavg "Mental health index average"
+**********************************
+**Method: Append three year data** 
+**********************************
 
-lookfor born
-rename V0945 bornUS
-tab bornUS
-replace bornUS=. if bornUS<0
-replace bornUS=0 if bornUS==2
-tab born, miss
+clear all
+//Set current directory 
+cd "/Users/yejikim/Documents/stata-scripts"
 
-lookfor education
-rename V0935 education
-summarize education
-replace education=. if education<0
-tab bor if educ>=12 & educ<17
-
-lookfor sex
-rename V1213 sexorientation
-tab sex
-replace sex=. if sex<0
-tab sex, missing
-
-lookfor marr
-tab married, missing
-tab sex married, column
-count if sexor==1 & mari==1
-
-lookfor exer
-rename V1260 exercise
-sum exercise
-replace exercise =. if exercise<0
-
-lookfor smok
-rename V1254 smokenow
-tab smokenow, missing
-sum exercise if smok==1 | smok==2
-sum exercise if smok==3
-
-lookfor offen
-tab V0062, missing
-rename V0062 offencetype
-lookfor state
-rename V0772 state
-br state
-tab offen if state=="AK" | state=="HI", missing
-
-//lecture 
 clear
-edit
+edit //bring in the excel data into stata 
 gen year=2010, a(stateabb)
 drop state var7
 destring urban, replace ignore(",")
@@ -58,7 +15,7 @@ replace urban = urban/10
 save statedata_2010.dta, replace
 
 clear
-edit
+edit //do the same for 2019
 gen year=2019, a(stateabb)
 drop state var7
 destring urban, replace ignore(",")
@@ -66,7 +23,7 @@ replace urban = urban/10
 save statedata_2019.dta, replace
 
 clear
-edit
+edit //finally for 2020 
 gen year=2020, a(stateabb)
 drop state var7
 destring urban, replace ignore(",")
@@ -76,35 +33,75 @@ save statedata_2020.dta, replace
 //append option 1
 clear
 append using statedata_2010 statedata_2019 statedata_2020
-count
+count //153
+br
 
 //append option 2
 clear
 use statedata_2010.dta
 append using statedata_2019
-count
+count //102
 append using statedata_2020
-count
+count //153
 br
 
-clear 
-use statedata_2019
-order year gsp region pop, a(statename)
-save statedata_2019, replace
-
-use statedata_2010
-append using statedata_2019 statedata_2020
-sort statename year
 save statedata_all.dta
 
-//now some data analysis
+******************************************************************
+***Question 1: Which states had the biggest GDP growth and loss? 
+******************************************************************
+
 reshape wide gsp snapnum urban pop, i(statename) j(year)
 gen gspchange = (gsp2020-gsp2010)/gsp2010
 sum gspchange, detail
 sort gspchange
 br statename gspchange
 list statename gspchange in 1/5
+
+/* Two states had negative growth in last from 2010 to 2020 (-5% and -3%)
+list statename gspchange in 1/5
+
+     +---------------------------+
+     |     statename   gspchange |
+     |---------------------------|
+  1. |        Alaska   -.0535701 |
+  2. |       Wyoming   -.0358536 |
+  3. |     Louisiana    .0320404 |
+  4. | West Virginia    .1598358 |
+  5. |    New Mexico    .1675649 |
+     +---------------------------+ */
+
 list statename gspchange in 47/51
+
+/* Mountain West States are booming 
+(52% growth compared to 2010 for North Dakota!!)
+     +-------------------------+
+     |    statename   gspcha~e |
+     |-------------------------|
+ 47. | North Dakota   .5254793 |
+ 48. |   California   .5455626 |
+ 49. |        Idaho   .5458012 |
+ 50. |   Washington    .677079 |
+ 51. |         Utah   .7033201 |
+     +-------------------------+ */
+
 gen popgrowth = pop2020-pop2010
 list statename popg if popgro<0
+
+/* Three states had population loss 
+. list statename popg if popgro<0
+
+     +--------------------------+
+     |     statename   popgro~h |
+     |--------------------------|
+  4. | West Virginia     -59239 |
+  7. |   Mississippi      -6009 |
+ 15. |      Illinois     -18087 |
+     +--------------------------+ */
+
 pwcorr gspchange popgrowth
+//Positive correlation between Gross State Product and Population Growth 
+
+*************
+**<<The End>>
+*************
