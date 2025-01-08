@@ -1,0 +1,422 @@
+**********************
+**Append IOM Dataset
+**********************
+
+**********************
+**Step 1: Download the excel files 
+**********************
+
+**********************
+**Step 2: Save them into dta and check variables  
+**********************
+/*
+//North Kivu-M23 Round 23
+clear all
+cd "/Users/yejikim/Documents/2024 Peloria/2. Y Data"
+edit //copy and paste the data 
+count // 7406 observations - correct! 
+summarize // 22 variables, the variable names are in french - need to fix it later
+save M23_R23.dta
+
+//Round 22
+clear all
+edit
+**(27 variables, 7402 observations pasted into data editor)
+save M23_R22.dta
+
+//Round 21
+clear all
+edit
+**(18 variables, 6543 observations pasted into data editor)
+save M23_R21.dta
+
+//Round 20
+clear all
+edit
+**(25 variables, 6531 observations pasted into data editor)
+**!! (variable named "territoire" already exists; using name "var6")
+
+save M23_R20.dta
+
+//Round 19-Host Community 
+clear all
+edit
+**(25 variables, 2335 observations pasted into data editor)
+gen typeofdwelling = 1 // = Host Community 
+save M23_R19_HC.dta
+
+/*
+* Rename variables to match the desired names
+rename province province
+rename provincepcode province_pcode
+rename territoire territory
+rename territoirepcode territory_pcode
+rename Zonedesanté health_zone
+rename Airedesanté health_area
+rename Collectivité community
+rename groupement grouping
+rename village village
+rename menageidp idp_households
+rename individusidp idp_individuals
+rename hommeidp idp_men
+rename femmeidp idp_women
+rename enfantde5ansidp idp_children_u5
+rename zonedorigine_village origin_village
+rename zonedorigine_territoire origin_territory
+rename Zonedorigine_Zonedesanté origin_health_zone
+rename Zonedesanté_Chefferie health_zone_chiefdom
+rename Zonedorigine_Zonedesantée_Groupe origin_health_zone_grouping
+rename zonedorigine_village origin_village
+rename Populationretournée_Ménage returned_households
+rename Populationretournée_Individus returned_individuals
+rename Populationretournée_Homme returned_men
+rename Populationretournée_Femme returned_women
+rename Populationretournée_Enfant5ans returned_children_u5
+
+* Save the updated dataset
+save "M23_R19_HC", replace
+*/
+
+//Round 19-Site CCCM
+clear all
+edit
+**(16 variables, 120 observations pasted into data editor)
+gen typeofdwelling = 2 // Site CCCM 
+save M23_R19_CM.dta 
+
+/*
+rename codeprovincesite province_pcode
+rename provincesite province
+rename codeterritoiresite territory_pcode 
+rename territoiresite territory
+rename condezonesantesite health_zone_pcode 
+rename zonesantesite health_zone
+rename codeairedesantesite health_area_pcode
+
+
+//Round 19-site non-CCCM
+clear all
+edit
+*(15 variables, 146 observations pasted into data editor)
+gen typeofdwelling = 3 // Site CCCM 
+save M23_R19_NCM.dta 
+
+
+// Round 18 - Host Community
+clear all
+edit
+*(25 variables, 2287 observations pasted into  data editor)
+gen typeofdwelling = 1 // Host community
+save M23_R18_HC.dta
+
+
+
+// Round 18 - site CCCM
+clear all
+edit
+ *(17 variables, 118 observations 
+*/
+
+drop var17 // repetitive
+gen typeofdwelling = 2 // site CCCM
+save M23_R18_CM.dta
+
+// Round 18 - site non-CCCM
+clear all
+edit
+
+/*
+gen typeofdwelling = 3 // site non-CCCM
+save M23_R18_NCM.dta
+
+// Round 17 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 // Host community
+save M23_R17_HC.dta
+
+// Round 17 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 // site CCCM
+save M23_R17_CM.dta
+
+// Round 17 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 // site non-CCCM
+save M23_R17_NCM.dta
+
+// Round 16 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 // Host community
+save M23_R16_HC.dta
+
+// Round 16 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 // site CCCM
+save M23_R16_CM.dta
+
+// Round 16 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 // site non-CCCM
+save M23_R16_NCM.dta
+
+// Round 15 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 // Host community
+save M23_R15_HC.dta
+
+// Round 15 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 // site CCCM
+save M23_R15_CM.dta
+
+// Round 15 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 // site non-CCCM
+save M23_R15_NCM.dta
+
+// Round 14 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 // Host community
+save M23_R14_HC.dta
+
+// Round 14 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 // site CCCM
+save M23_R14_CM.dta
+
+// Round 14 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 // site non-CCCM
+save M23_R14_NCM.dta
+
+// Round 13 - Host Community
+clear all
+edit
+rename var27 MFcheck
+gen typeofdwelling = 1 // Host community
+save M23_R13_HC.dta
+
+// Round 13 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 // site CCCM
+save M23_R13_CM.dta
+
+// Round 13 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 // site non-CCCM
+save M23_R13_NCM.dta
+
+// Round 12 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R12_HC.dta
+
+// Round 12 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R12_CM.dta
+
+// Round 12 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R12_NCM.dta
+
+// Round 11 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R11_HC.dta
+
+// Round 11 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R11_CM.dta
+
+// Round 11 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R11_NCM.dta
+
+// Round 10 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R10_HC.dta
+
+// Round 10 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R10_CM.dta
+
+// Round 10 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R10_NCM.dta
+
+// Round 9 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R9_HC.dta
+
+// Round 9 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R9_CM.dta
+
+// Round 9 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R9_NCM.dta
+
+// Round 8 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R8_HC.dta
+
+// Round 8 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R8_CM.dta
+
+// Round 8 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R8_NCM.dta
+
+// Round 7 - Host Community
+clear all
+edit
+drop type 
+gen typeofdwelling = 1 
+save M23_R7_HC.dta
+
+// Round 7 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R7_CM.dta
+
+// Round 7 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R7_NCM.dta
+
+// Round 6 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R6_HC.dta
+
+// Round 6 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R6_CM.dta
+
+// Round 6 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R6_NCM.dta
+
+// Round 5 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R5_HC.dta
+
+// Round 5 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R5_CM.dta
+
+// Round 5 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R5_NCM.dta
+
+// Round 4 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R4_HC.dta
+
+// Round 4 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R4_CM.dta
+
+// Round 4 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R4_NCM.dta
+
+// Round 3 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R3_HC.dta
+
+// Round 3 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R3_CM.dta
+
+// Round 3 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R3_NCM.dta
+
+// Round 2 - Host Community
+clear all
+edit
+gen typeofdwelling = 1 
+save M23_R2_HC.dta
+
+// Round 2 - site CCCM
+clear all
+edit
+gen typeofdwelling = 2 
+save M23_R2_CM.dta
+
+// Round 2 - site non-CCCM
+clear all
+edit
+gen typeofdwelling = 3 
+save M23_R2_NCM.dta
+
+
