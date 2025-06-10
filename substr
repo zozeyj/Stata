@@ -1,0 +1,29 @@
+***************
+**Goal: subtract letters from string
+***************
+
+*********************
+***Direction : extract text after "aa:" and before "f" 
+*********************
+
+** sample data 
+clear all
+input str100 text
+""
+""
+end
+
+replace text = "aa: inf" in 1
+replace text = "aa: abovef" in 2
+
+** step 1
+gen t1 = strpos(text, "f") // what place is "f" in the string 
+
+** step 2
+gen t2= substr(text, 1, -1 + strpos(text, "f")) // subtract text from "text" variable from 1st place to -1 + t1 place 
+
+** step 3
+gen t3= subinstr(t2, "aa:", "", 1) //subinstr(string, substring_to_replace, replacement_string, number_of_replacements)
+
+** step 4
+gen t4 = trim(t3) // remove any spaces 
